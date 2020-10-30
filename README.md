@@ -22,10 +22,7 @@ Become:
  
 ## Using Phone Number Beautifier
 
-By default, phone numbers are parsed on page load automatically.  However, you can re-parse phone numbers by clicking on the "Phone Number Beautifier" extension button in the toolbar.
-
-Single Click "Phone Number Beautifier" Extension Button in the Browser Toolbar = Beautify Phone Numbers
-Double Click "Phone Number Beautifier" Extension Button in the Browser Toolbar = Disable Beautify Phone Numbers for Page (reloads the page and skips automatically beautifying phone numbers)
+Click on the "Phone Number Beautifier" extension button in the toolbar to format (beautify) phone numbers so that they are more easily readable.
 
 ## Beta Release
 

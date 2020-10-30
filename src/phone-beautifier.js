@@ -121,27 +121,12 @@ function setupObservablePhoneNumberBeautifier(elem){
 }
 
 /* MAIN CODE */
-console.log("Running phone number beautifier!");
-window.addEventListener('load', function(event){
-	var params = new URLSearchParams(window.location.search.substring(1));
-	var skipAutoFormat = params.get('skip-phone-beautifier');
-	if(!skipAutoFormat){
-		formatPhoneNumbers();
-		setTimeout(function(){ formatPhoneNumbers(); }, 3000);
-	}
-});
+console.log("Phone number beautifier initialized for page!");
 
 let myPort = browser.runtime.connect({name:"port-from-cs"});
 
 myPort.onMessage.addListener(function(m) {
 	console.log("In phone beautifier content script, received message from background script: ");
 	console.log(m.greeting);
-	if(m.greeting == "single"){
-		formatPhoneNumbers();
-	}else{
-		// Disable for page and reload
-		const urlParams = new URLSearchParams(window.location.search);
-		urlParams.set('skip-phone-beautifier', 'yes');
-		window.location.search = urlParams;
-	}
+	formatPhoneNumbers();
 });
