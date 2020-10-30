@@ -3,7 +3,7 @@
     "name": "Phone Number Beautifier",
     "description": "Formats phone numbers with dashes to make them easier to read",
     "version": "0.1",
-    "homepage_url": "https://github.com/own3mall/phone-number-beautifier",
+    "homepage_url": "https://github.com/own3mall/Phone-Number-Beautifier",
 
     "icons": {
         "64": "icons/phone_number_beautifier.png"
