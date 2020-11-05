@@ -31,7 +31,7 @@ function beautifyPhoneNumbers(elem){
 }
 
 function beautifyPhoneNumber(text){
-	console.log("Beautifying detected phone number of " + text + "!");
+	console.log("Phone Number Beautifier: Beautifying detected phone number of " + text + "!");
 	var formattedPhoneNumber = "";
 	text = text.replace(/\D+/g, '');
 	var processedNums = 0;
@@ -89,7 +89,7 @@ function findPhoneNumbersInAllChildren(node) {
 	var matchParent;
     for (var i = 0; i < node.childNodes.length; i++) {
 		child = node.childNodes[i];
-		if(child.nodeName != 'SCRIPT'){
+		if(!isElementIgnoredElementPhoneBeautifier(child)){
 			findPhoneNumbersInAllChildren(child);
 			immediateText = [].reduce.call(child.childNodes, function(a, b) { return a + (b.nodeType === 3 ? b.textContent : ''); }, '');
 			var phoneTextMatches = immediateText.match(/\bphone\b/gi);
@@ -97,9 +97,9 @@ function findPhoneNumbersInAllChildren(node) {
 			if((phoneTextMatches && phoneTextMatches.length) || (poundSignMatches && poundSignMatches.length) || (child.className && child.className.toLowerCase().includes('phone')) || (child.id && child.id.toLowerCase().includes('phone')) || (typeof child.getAttribute === "function" && child.getAttribute("name") && child.getAttribute("name").toLowerCase().includes('phone'))){
 				if(!(child.className && child.className.toLowerCase().includes('phonebeautifierskip'))){
 					matchParent = child.parentElement;
-					if(matchParent && matchParent != null && matchParent.nodeName != 'BODY' && matchParent.nodeName != 'SCRIPT'){
-						// Two levels if span element is child
-						if(matchParent.parentElement && matchParent.parentElement != null && elemsToParse.indexOf(matchParent.parentElement) == -1 && matchParent.parentElement.nodeName != 'BODY' && matchParent.nodeName != 'SCRIPT' && child.nodeName == 'SPAN'){
+					if(matchParent && matchParent != null && !isElementIgnoredElementPhoneBeautifier(matchParent)){
+						// Two levels if element is an inline element
+						if(matchParent.parentElement && matchParent.parentElement != null && elemsToParse.indexOf(matchParent.parentElement) == -1 && !isElementIgnoredElementPhoneBeautifier(matchParent.parentElement) && isElementInlinePhoneNumberBeautifier(child)){
 							elemsToParse.push(matchParent.parentElement);
 						}else{
 							// One level otherwise
@@ -120,6 +120,22 @@ function findPhoneNumbersInAllChildren(node) {
 	}
 }
 
+function isElementInlinePhoneNumberBeautifier(elem){
+	var inlineElements = new Array('a', 'abbr', 'acronym', 'b', 'bdo', 'big', 'br', 'button', 'cite', 'code', 'dfn', 'em', 'i', 'img', 'input', 'kbd', 'label', 'map', 'object', 'output', 'q', 'samp', 'script', 'select', 'small', 'span', 'strong', 'sub', 'sup', 'textarea', 'time', 'tt', 'var');
+	if(inlineElements.indexOf(elem.nodeName.toLowerCase()) != -1){
+		return true;
+	}
+	return false;
+}
+
+function isElementIgnoredElementPhoneBeautifier(elem){
+	var ignoredElements = new Array('img', 'body', 'script');
+	if(ignoredElements.indexOf(elem.nodeName.toLowerCase()) != -1){
+		return true;
+	}
+	return false;
+}
+
 function setupObservablePhoneNumberBeautifier(elem){
 	// Setup observable on body changes
 	var observer = new MutationObserver(function(mutations) {
@@ -131,12 +147,11 @@ function setupObservablePhoneNumberBeautifier(elem){
 }
 
 /* MAIN CODE */
-console.log("Phone number beautifier initialized for page!");
+console.log("Phone Number Beautifier initialized for page!");
 
 let myPort = browser.runtime.connect({name:"port-from-cs"});
 
 myPort.onMessage.addListener(function(m) {
-	console.log("In phone beautifier content script, received message from background script: ");
-	console.log(m.greeting);
+	console.log("Phone Number Beautifier toolbar icon clicked. Running beautifier.");
 	formatPhoneNumbers();
 });
