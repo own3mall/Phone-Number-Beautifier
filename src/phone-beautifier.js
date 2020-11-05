@@ -84,39 +84,43 @@ function setupAjaxLoadFunctionPhoneNumberBeautifierWebRequest(){
 }
 
 function findPhoneNumbersInAllChildren(node) {
-	var immediateText;
-	var child;
-	var matchParent;
-    for (var i = 0; i < node.childNodes.length; i++) {
-		child = node.childNodes[i];
-		if(!isElementIgnoredElementPhoneBeautifier(child)){
-			findPhoneNumbersInAllChildren(child);
-			immediateText = [].reduce.call(child.childNodes, function(a, b) { return a + (b.nodeType === 3 ? b.textContent : ''); }, '');
-			var phoneTextMatches = immediateText.match(/\bphone\b/gi);
-			var poundSignMatches = immediateText.match(/#/gi);
-			if((phoneTextMatches && phoneTextMatches.length) || (poundSignMatches && poundSignMatches.length) || (child.className && child.className.toLowerCase().includes('phone')) || (child.id && child.id.toLowerCase().includes('phone')) || (typeof child.getAttribute === "function" && child.getAttribute("name") && child.getAttribute("name").toLowerCase().includes('phone'))){
-				if(!(child.className && child.className.toLowerCase().includes('phonebeautifierskip'))){
-					matchParent = child.parentElement;
-					if(matchParent && matchParent != null && !isElementIgnoredElementPhoneBeautifier(matchParent)){
-						// Two levels if element is an inline element
-						if(matchParent.parentElement && matchParent.parentElement != null && elemsToParse.indexOf(matchParent.parentElement) == -1 && !isElementIgnoredElementPhoneBeautifier(matchParent.parentElement) && isElementInlinePhoneNumberBeautifier(child)){
-							elemsToParse.push(matchParent.parentElement);
+	try{
+		var immediateText;
+		var child;
+		var matchParent;
+		for (var i = 0; i < node.childNodes.length; i++) {
+			child = node.childNodes[i];
+			if(!isElementIgnoredElementPhoneBeautifier(child)){
+				findPhoneNumbersInAllChildren(child);
+				immediateText = [].reduce.call(child.childNodes, function(a, b) { return a + (b.nodeType === 3 ? b.textContent : ''); }, '');
+				var phoneTextMatches = immediateText.match(/\bphone\b/gi);
+				var poundSignMatches = immediateText.match(/#/gi);
+				if((phoneTextMatches && phoneTextMatches.length) || (poundSignMatches && poundSignMatches.length) || (child.className !== undefined && child.className && child.className.toLowerCase().includes('phone')) || (child.id !== undefined && child.id && child.id.toLowerCase().includes('phone')) || (typeof child.getAttribute === "function" && child.getAttribute("name") && child.getAttribute("name").toLowerCase().includes('phone'))){
+					if(!(child.className && child.className.toLowerCase().includes('phonebeautifierskip'))){
+						matchParent = child.parentElement;
+						if(matchParent && matchParent != null && !isElementIgnoredElementPhoneBeautifier(matchParent)){
+							// Two levels if element is an inline element
+							if(matchParent.parentElement && matchParent.parentElement != null && elemsToParse.indexOf(matchParent.parentElement) == -1 && !isElementIgnoredElementPhoneBeautifier(matchParent.parentElement) && isElementInlinePhoneNumberBeautifier(child)){
+								elemsToParse.push(matchParent.parentElement);
+							}else{
+								// One level otherwise
+								if(elemsToParse.indexOf(matchParent) == -1){
+									elemsToParse.push(matchParent);
+								}
+							}
 						}else{
-							// One level otherwise
-							if(elemsToParse.indexOf(matchParent) == -1){
-								elemsToParse.push(matchParent);
+							if(elemsToParse.indexOf(child) == -1){
+								elemsToParse.push(child);
 							}
 						}
-					}else{
-						if(elemsToParse.indexOf(child) == -1){
-							elemsToParse.push(child);
-						}
+						
+						child.setAttribute("data-phone-beautifier-number-formatted", "yes"); 
 					}
-					
-					child.setAttribute("data-phone-beautifier-number-formatted", "yes"); 
 				}
 			}
 		}
+	}catch(err) {
+		console.log("Phone Number Beautifier exception: " + err);
 	}
 }
 
@@ -129,10 +133,19 @@ function isElementInlinePhoneNumberBeautifier(elem){
 }
 
 function isElementIgnoredElementPhoneBeautifier(elem){
-	var ignoredElements = new Array('img', 'body', 'script');
+	var ignoredElements = new Array('img', 'body', 'script', 'svg');
 	if(ignoredElements.indexOf(elem.nodeName.toLowerCase()) != -1){
 		return true;
 	}
+	
+	// Ignore svgs
+	if(elem.closest === 'function'){
+		var closestSvg = elem.closest('svg');
+		if(closestSvg != null){
+			return true;
+		}
+	}
+	
 	return false;
 }
 
