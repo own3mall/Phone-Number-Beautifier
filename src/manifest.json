@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "Phone Number Beautifier",
     "description": "Formats phone numbers with dashes to make them easier to read",
-    "version": "0.3",
+    "version": "0.3.1",
     "homepage_url": "https://github.com/own3mall/Phone-Number-Beautifier",
 
     "icons": {
