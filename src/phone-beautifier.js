@@ -39,12 +39,24 @@ function beautifyPhoneNumber(text){
 	for(var i=text.length - 1; i >= 0; i--){
 		formattedPhoneNumber = text[i] + formattedPhoneNumber;
 		processedNums++;
-		if(processedNums == 4 || processedNums == 7 || (processedNums == 10 && text.length > 10)){
+		if(processedNums == 4){
 			formattedPhoneNumber = '-' + formattedPhoneNumber;
+		}
+		
+		if(processedNums == 7 && text.length > 7 && text.length >= 10){
+			formattedPhoneNumber = ') ' + formattedPhoneNumber;
+		}
+		
+		if(processedNums == 10 && text.length >= 10){
+			formattedPhoneNumber = ' (' + formattedPhoneNumber;
+		}
+		
+		if(processedNums > 10 && i == 0){
+			formattedPhoneNumber = "+" + formattedPhoneNumber;
 		}
 	}
 	
-	return formattedPhoneNumber;
+	return formattedPhoneNumber.trim();
 }
 
 function setupAjaxLoadFunctionPhoneNumberBeautifier(){
@@ -60,13 +72,13 @@ function setupAjaxLoadFunctionPhoneNumberBeautifier(){
 }
 
 function setupAjaxLoadFunctionPhoneNumberBeautifierWebRequest(){
-	const send = XMLHttpRequest.prototype.send
+	const send = XMLHttpRequest.prototype.send;
     XMLHttpRequest.prototype.send = function() { 
         this.addEventListener('load', function() {
             console.log('XHR request completed, so now it\'s time to run the phone number beautifier again!');
 			findPhoneNumbersAndReplace(document.body);
-        })
-        return send.apply(this, arguments)
+        });
+        return send.apply(this, arguments);
     };
     console.log("Override default ajax behavior webrequest!");
 }
@@ -82,29 +94,27 @@ function findPhoneNumbersInAllChildren(node) {
 			immediateText = [].reduce.call(child.childNodes, function(a, b) { return a + (b.nodeType === 3 ? b.textContent : ''); }, '');
 			var phoneTextMatches = immediateText.match(/\bphone\b/gi);
 			var poundSignMatches = immediateText.match(/#/gi);
-			if((phoneTextMatches && phoneTextMatches.length) || (poundSignMatches && poundSignMatches.length)){
-				matchParent = child.parentElement;
-				if(matchParent && matchParent != null && matchParent.nodeName != 'BODY'){
-					// Go two levels up just in case
-					if(matchParent.parentElement && matchParent.parentElement != null && elemsToParse.indexOf(matchParent.parentElement) == -1 && matchParent.parentElement.nodeName != 'BODY'){
-						elemsToParse.push(matchParent.parentElement);
+			if((phoneTextMatches && phoneTextMatches.length) || (poundSignMatches && poundSignMatches.length) || (child.className && child.className.toLowerCase().includes('phone')) || (child.id && child.id.toLowerCase().includes('phone')) || (typeof child.getAttribute === "function" && child.getAttribute("name") && child.getAttribute("name").toLowerCase().includes('phone'))){
+				if(!(child.className && child.className.toLowerCase().includes('phonebeautifierskip'))){
+					matchParent = child.parentElement;
+					if(matchParent && matchParent != null && matchParent.nodeName != 'BODY' && matchParent.nodeName != 'SCRIPT'){
+						// Two levels if span element is child
+						if(matchParent.parentElement && matchParent.parentElement != null && elemsToParse.indexOf(matchParent.parentElement) == -1 && matchParent.parentElement.nodeName != 'BODY' && matchParent.nodeName != 'SCRIPT' && child.nodeName == 'SPAN'){
+							elemsToParse.push(matchParent.parentElement);
+						}else{
+							// One level otherwise
+							if(elemsToParse.indexOf(matchParent) == -1){
+								elemsToParse.push(matchParent);
+							}
+						}
 					}else{
-						if(elemsToParse.indexOf(matchParent) == -1){
-							elemsToParse.push(matchParent);
+						if(elemsToParse.indexOf(child) == -1){
+							elemsToParse.push(child);
 						}
 					}
-				}else{
-					if(elemsToParse.indexOf(child) == -1){
-						elemsToParse.push(child);
-					}
+					
+					child.setAttribute("data-phone-beautifier-number-formatted", "yes"); 
 				}
-				
-				/*
-				if(!child.hasAttribute('data-phone-beautifier-number-formatted')){
-					setupObservablePhoneNumberBeautifier(child);
-				}*/
-				
-				child.setAttribute("data-phone-beautifier-number-formatted", "yes"); 
 			}
 		}
 	}
